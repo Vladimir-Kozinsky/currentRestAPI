@@ -1,6 +1,5 @@
 {
     "port": 5000,
     "mongoUri": "mongodb+srv://user1:user@cluster0.i1mxu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
-    "jwtSecret": "my first backend",
-    "DB": "mongodb://localhost/image-upload"
+    "jwtSecret": "my first backend"
 }

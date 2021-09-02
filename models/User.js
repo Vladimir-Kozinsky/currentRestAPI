@@ -25,6 +25,7 @@ const schema = new Schema({
         }
     },
     isAuth: { type: Boolean },
+    images: {type: Buffer}
 })
 
 module.exports = model('User', schema)

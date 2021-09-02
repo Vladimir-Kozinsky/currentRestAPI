@@ -7,7 +7,8 @@ const storage = new GridFsStorage({
     url: config.get('mongoUri'),
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
-        const match = ["image/png", "image/jpeg"];
+        console.log(req.query.userId)
+        const match = ["image/png", "image/jpeg", "image/jpg"];
 
         if (match.indexOf(file.mimetype) === -1) {
             const filename = `${Date.now()}-any-name-${file.originalname}`;
@@ -15,7 +16,8 @@ const storage = new GridFsStorage({
         }
 
         return {
-            bucketName: "photos",
+            bucketName: "images",
+            // filename: 'profileAvatar.jpeg'
             filename: `${Date.now()}-any-name-${file.originalname}`,
         };
     },

@@ -14,7 +14,7 @@ connection();
 const conn = mongoose.connection;
 conn.once("open", function () {
     gfs = Grid(conn.db, mongoose.mongo);
-    gfs.collection("photos");
+    gfs.collection("images");
 });
 
 app.use("/api", upload);
@@ -28,6 +28,7 @@ app.use(cors({
 
 // media routes
 app.get("/file/:filename", async (req, res) => {
+    console.log("HELLLO")
     try {
         const file = await gfs.files.findOne({ filename: req.params.filename });
         const readStream = gfs.createReadStream(file.filename);
@@ -38,6 +39,7 @@ app.get("/file/:filename", async (req, res) => {
 });
 
 app.delete("/file/:filename", async (req, res) => {
+    console.log("HELLLO11111")
     try {
         await gfs.files.deleteOne({ filename: req.params.filename });
         res.send("success");

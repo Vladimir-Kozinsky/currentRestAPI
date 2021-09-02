@@ -184,8 +184,8 @@ router.get('/profile', cors(), async (req, res) => {
                 whatsApp: "watsap"
             },
             photos: {
-                small: "url small photo",
-                large: "url large photo"
+                small: user.profileInfo.photos.small,
+                large: user.profileInfo.photos.large
             },
             lookingForAJob: true,
             lookingForAJobDescription: 'Ищу работу, знаю это это и это',
