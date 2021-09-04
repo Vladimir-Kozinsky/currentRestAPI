@@ -5,11 +5,16 @@ const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken')
 const config = require('config')
 const router = Router()
-const cors = require("cors");
+const cors = require("cors")
+const express = require("express")
 
+router.use(cors({
+    origin: 'http://localhost:3000'
+}
+))
 
 //  /api/register
-router.post('/register', 
+router.post('/register',
     body('email', 'Wrong email').isEmail(),
     body('password', 'Minimum password length is 6 sympols').isLength({ min: 6 }),
     async (req, res) => {
@@ -43,7 +48,7 @@ router.post('/login',
     [
         body('email', 'Write correct email').isEmail(),
         body('password', 'Enter the password').exists()
-    ], cors(),
+    ],
     async (req, res) => {
         try {
             const errors = validationResult(req)
@@ -85,7 +90,7 @@ router.post('/login',
     })
 
 //  /api/users
-router.get('/users', cors(), async (req, res) => {
+router.get('/users', async (req, res) => {
     try {
         const usersArr = await User.find()
         let count = 0
@@ -97,8 +102,8 @@ router.get('/users', cors(), async (req, res) => {
                 name: item.profileInfo.fullName,
                 status: item.profileInfo.status,
                 photos: {
-                    small: "item.photos.small",
-                    large: "item.photos.large",
+                    small: item.profileInfo.photos.small,
+                    large: item.profileInfo.photos.large
                 },
                 followed: true
             }
@@ -116,8 +121,7 @@ router.get('/users', cors(), async (req, res) => {
 //  /api/logout
 router.post('/logout', async (req, res) => {
     try {
-        // console.log(req.body)
-        const { userId } = req.params
+        const { userId } = req.body
         await User.findByIdAndUpdate(userId, { isAuth: false })
         res.json({
             resultCode: 0,
@@ -134,9 +138,9 @@ router.post('/logout', async (req, res) => {
     }
 })
 
-router.get('/auth/me', cors(), async (req, res) => {
+router.get('/auth/me', async (req, res) => {
     try {
-        // console.log(req.query)
+        console.log('auth me ' + req.query)
         const { userId } = req.query
         const user = await User.findById(userId)
         const token = jwt.sign(
@@ -144,22 +148,38 @@ router.get('/auth/me', cors(), async (req, res) => {
             config.get('jwtSecret'),
             { expiresIn: '1h' }
         )
-        res.json({
-            resultCode: 0,
-            messages: [],
-            data: {
-                id: user.id,
-                email: user.email,
-                login: user.login,
-                token
+        console.log('not logged ' + user.isAuth)
+        if (user.isAuth === true) {
+            return res.json({
+                resultCode: 0,
+                messages: [],
+                data: {
+                    id: user.id,
+                    email: user.email,
+                    login: user.login,
+                    token
+                }
             }
-        })
+            )
+        } else {
+            return res.json({
+                resultCode: 1,
+                messages: [],
+                data: {
+                    id: null,
+                    email: null,
+                    login: null,
+                    token: null
+                }
+            }
+            )
+        }
     } catch (error) {
         res.status(500).json(error)
     }
 })
 
-router.get('/profile', cors(), async (req, res) => {
+router.get('/profile', async (req, res) => {
     try {
         //console.log(req.params)
         const { userId } = req.query
@@ -197,7 +217,7 @@ router.get('/profile', cors(), async (req, res) => {
     }
 })
 
-router.get('/profile/status', cors(), async (req, res) => {
+router.get('/profile/status', async (req, res) => {
     try {
         const { userId } = req.query
         console.log("status" + userId)
@@ -213,7 +233,7 @@ router.get('/profile/status', cors(), async (req, res) => {
     }
 })
 
-router.get('/profile/photo', cors(), async (req, res) => {
+router.get('/profile/photo', async (req, res) => {
     try {
 
         const { userId } = req.query
