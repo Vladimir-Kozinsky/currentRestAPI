@@ -56,6 +56,9 @@ router.options("/file/:filename", cors())
 router.delete("/file/:filename", cors(), async (req, res) => {
     console.log("HELLLO11111")
     try {
+        if(req.params.filename === 'none') {
+            console.log('image rout os none')
+        }
         await gfs.files.deleteOne({ filename: req.params.filename });
         res.send("success");
     } catch (error) {

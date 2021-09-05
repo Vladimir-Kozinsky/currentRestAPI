@@ -15,10 +15,11 @@ router.use(cors({
 
 //  /api/register
 router.post('/register',
+
+    // validation of email and password
     body('email', 'Wrong email').isEmail(),
     body('password', 'Minimum password length is 6 sympols').isLength({ min: 6 }),
     async (req, res) => {
-        res.header('Access-Control-Allow-Origin: *')
         try {
             const errors = validationResult(req)
             if (!errors.isEmpty) {
@@ -27,17 +28,67 @@ router.post('/register',
                     message: 'Wrong data during registration'
                 })
             }
-            const { email, password, rememberMe, login } = req.body
+            const { email, password, confPassword, fullName, status, lookingForAJob,
+                lookingForAJobDescription, github, vk, facebook, instagram, twitter, website,
+                youtube, mainLink, small, large } = req.body
+
+            // passwords match check 
+            if (password != confPassword) {
+                return res.status(400).json({ message: " Passwords mismatch " })
+            }
+
+            // checking if a user exists
             const candidate = await User.findOne({ "email": email })
             if (candidate) {
                 return res.status(400).json({ message: " User with that name alreagy exists " })
             }
-            const isAuth = false
+            // hash password
             const hashedPassword = await bcrypt.hash(password, 12)
-            console.log(req.body)
-            const user = new User({ ...req.body })
+
+            // function - if value '', value ='none
+            const isValue = (value) => {
+                if (!value) {
+                    return value = "none"
+                } else {
+                    return value
+                }
+            }
+
+            const user = new User({
+                email: email,
+                password: hashedPassword,
+                rememberMe: false,
+                profileInfo: {
+                    userId: 'none',
+                    fullName: isValue(fullName),
+                    status: isValue(status),
+                    lookingForAJob: true,
+                    lookingForAJobDescription: isValue(lookingForAJobDescription),
+                    contacts: {
+                        github: isValue(github),
+                        vk: isValue(vk),
+                        facebook: isValue(facebook),
+                        instagram: isValue(instagram),
+                        twitter: isValue(twitter),
+                        website: isValue(website),
+                        youtube: isValue(youtube),
+                        mainLink: isValue(mainLink)
+                    },
+                    photos: {
+                        small: isValue(small),
+                        large: isValue(large)
+                    }
+                },
+                isAuth: false
+            })
             await user.save()
-            res.status(201).json({ message: 'User created successfully ' })
+            // add userId to profileInfo
+            await User.findByIdAndUpdate(user._id, { $set: { 'profileInfo.userId': user._id } }, function (err, doc) { });
+            res.status(201).json({
+                resultCode: 0,
+                messages: ['User created successfully '],
+                data: { ...user.profileInfo }
+            })
         } catch (error) {
             res.status(500).json({ message: 'Something wrong, try again' })
         }
@@ -143,6 +194,19 @@ router.get('/auth/me', async (req, res) => {
         console.log('auth me ' + req.query)
         const { userId } = req.query
         const user = await User.findById(userId)
+        if (!user) {
+            return res.json({
+                resultCode: 1,
+                messages: [],
+                data: {
+                    id: null,
+                    email: null,
+                    login: null,
+                    token: null
+                }
+            }
+            )
+        }
         const token = jwt.sign(
             { userId: user.id },
             config.get('jwtSecret'),

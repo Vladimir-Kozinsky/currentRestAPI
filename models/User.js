@@ -5,6 +5,7 @@ const schema = new Schema({
     password: { type: String, required: true },
     rememberMe: { type: Boolean },
     profileInfo: {
+        userId: {type: String},
         fullName: { type: String },
         status: { type: String },
         lookingForAJob: { type: Boolean },
